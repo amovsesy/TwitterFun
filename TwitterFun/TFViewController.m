@@ -8,22 +8,49 @@
 
 #import "TFViewController.h"
 
-@interface TFViewController ()
+@interface TFViewController () < UITableViewDataSource >
+@property (weak, nonatomic) IBOutlet UITextField *twitterHandleTextField;
+@property (weak, nonatomic) IBOutlet UIButton *goButton;
+@property (weak, nonatomic) IBOutlet UITableView *tweetsTableView;
+@property (strong, nonatomic) NSDictionary *tweets;
 
 @end
 
 @implementation TFViewController
 
-- (void)viewDidLoad
-{
-    [super viewDidLoad];
-	// Do any additional setup after loading the view, typically from a nib.
+- (void)viewDidLoad {
+    self.tweets = @{@"user": @{}, @"tweets": @{}};
+    [self.tweetsTableView setHidden: YES];
 }
 
-- (void)didReceiveMemoryWarning
+- (IBAction)onGoButtonTapped {
+    NSString *handle = self.twitterHandleTextField.text;
+    self.tweets = [self fetchTweetsWithTwitterHandle:handle];
+}
+
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
-    [super didReceiveMemoryWarning];
-    // Dispose of any resources that can be recreated.
+    return [self.tweets[@"tweets"] count];
+}
+
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"twitterCell" forIndexPath:indexPath];
+    UILabel *label= (UILabel*)[cell viewWithTag:1111];
+    label.text = @"hello world";
+    return cell;
+}
+
+- (NSDictionary *)fetchTweetsWithTwitterHandle:(NSString *)twitterHandle {
+    NSString *urlString = [NSString stringWithFormat:@"http://rblunden-md:3000/user/%@/timeline/", twitterHandle];
+    NSURL *url = [NSURL URLWithString:urlString];
+    NSURLRequest *request = [NSURLRequest requestWithURL:url];
+    
+    // You would never use a syncrhonous request in a real app, it's just more convenient for this demo
+    NSData *data = [NSURLConnection sendSynchronousRequest:request returningResponse:NULL error:NULL];
+    // Null vs nil vs Nil - http://nshipster.com/nil/
+    NSDictionary *json = [NSJSONSerialization JSONObjectWithData:data options:0 error:NULL];
+    return json;
 }
 
 @end
